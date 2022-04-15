@@ -1,21 +1,30 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RedisOnDotnet6Demo.Models;
 using System.Diagnostics;
+using RedisOnDotnet6Demo.Data;
 
 namespace RedisOnDotnet6Demo.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IUserRepository _userRepository;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IUserRepository userRepository)
         {
             _logger = logger;
+            _userRepository = userRepository;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(bool? fromCache)
         {
-            return View();
+            List<User> users;
+            if(fromCache == true){
+                users = await _userRepository.GetUsersAsync();
+            } else {
+                users = await _userRepository.GetUsersAsync();
+            }
+            return View(users);
         }
 
         public IActionResult Privacy()
