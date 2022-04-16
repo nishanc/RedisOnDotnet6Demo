@@ -5,26 +5,37 @@
 
 <div class="text-center">
     <h1>Employee Details</h1>
+    <p>@ViewData["Location"]</p>
 </div>
 <br>
-<table class="table table-hover">
+<table class="table table-hover table-striped table-bordered table-sm">
   <thead>
-    <tr>
+    <tr class="table-primary">
       <th scope="col">First Name</th>
       <th scope="col">Last Name</th>
     </tr>
   </thead>
   <tbody>
-  @foreach (var item in Model)
+  @if (!Model.Any())
   {
       <tr>
-          <th scope="row">
-              @Html.DisplayFor(modelItem => item.FirstName)
-          </th>
-          <td>@Html.DisplayFor(modelItem => item.LastName)</td>
+          <td>Loading...</td>
       </tr>
+  }
+  else
+  {
+      foreach (var item in Model)
+      {
+          <tr class="@ViewData["Style"]">
+              <th>
+                  @Html.DisplayFor(modelItem => item.FirstName)
+              </th>
+              <th>
+                  @Html.DisplayFor(modelItem => item.LastName)
+              </th>
+          </tr>
+      }
   }
   </tbody>
 </table>
-<a class="btn btn-success" asp-area="" asp-controller="Home" asp-action="Index" asp-route-fromCache="false">Reload</a>
-<a class="btn btn-success" asp-area="" asp-controller="Home" asp-action="Index" asp-route-fromCache="true">Reload from Cache</a>
+<a class="btn btn-success" asp-area="" asp-controller="Home" asp-action="Index">Reload</a>

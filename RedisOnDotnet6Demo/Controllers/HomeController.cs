@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RedisOnDotnet6Demo.Models;
 using System.Diagnostics;
+using Microsoft.Extensions.Caching.Distributed;
 using RedisOnDotnet6Demo.Data;
+using RedisOnDotnet6Demo.Helpers;
 
 namespace RedisOnDotnet6Demo.Controllers
 {
@@ -9,21 +11,41 @@ namespace RedisOnDotnet6Demo.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IUserRepository _userRepository;
+        private IDistributedCache _cache;
 
-        public HomeController(ILogger<HomeController> logger, IUserRepository userRepository)
+        public HomeController(ILogger<HomeController> logger, IUserRepository userRepository, IDistributedCache cache)
         {
             _logger = logger;
             _userRepository = userRepository;
+            _cache = cache;
         }
 
-        public async Task<IActionResult> Index(bool? fromCache)
+        public async Task<IActionResult> Index()
         {
-            List<User> users;
-            if(fromCache == true){
+            List<User>? users;
+            string loadLocation;
+            string isCacheData;
+            string recordKey = $"Users_{DateTime.Now:yyyyMMdd_hhmm}";
+
+            users = await _cache.GetRecordAsync<List<User>>(recordKey);
+
+            if (users is null) // Data not available in the Cache
+            {
                 users = await _userRepository.GetUsersAsync();
-            } else {
-                users = await _userRepository.GetUsersAsync();
+                loadLocation = $"Loaded from DB at {DateTime.Now}";
+                isCacheData = "text-danger";
+
+                await _cache.SetRecordAsync(recordKey, users);
             }
+            else // Data available in the Cache
+            {
+                loadLocation = $"Loaded from Cache at {DateTime.Now}";
+                isCacheData = "text-success";
+            }
+
+            ViewData["Style"] = isCacheData;
+            ViewData["Location"] = loadLocation;
+
             return View(users);
         }
 
